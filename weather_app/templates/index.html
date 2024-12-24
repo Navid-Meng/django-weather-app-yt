@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Search Section -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-6">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="input-group input-group-lg shadow-sm">
+                    <input type="text" name="city" class="form-control border-0" placeholder="Enter city name" required>
+                    <button class="btn btn-secondary px-4" type="submit">
+                        <i class="fas fa-search me-2"></i>Add City
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Weather Cards -->
+    <div class="row">
+        {% for weather in weather_data %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm hover-card">
+                <div class="card-body text-center">
+                    <div class="weather-icon mb-3">
+                        <img src="http://openweathermap.org/img/w/{{ weather.icon }}.png" alt="Weather icon"
+                            class="img-fluid" style="width: 80px;">
+                    </div>
+                    <h4 class="card-title fw-bold mb-3">{{ weather.city }}</h4>
+                    <div class="temperature display-6 mb-3">
+                        {{ weather.temperature }}°C
+                    </div>
+                    <p class="card-text text-muted">
+                        {{ weather.description|title }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Add this CSS to your stylesheet or in a style tag in your base template -->
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .hover-card {
+        transition: transform 0.2s ease-in-out;
+        border: none;
+        border-radius: 15px;
+    }
+
+    .hover-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .input-group {
+        border-radius: 50px;
+        overflow: hidden;
+    }
+
+    .input-group input {
+        padding: 15px 25px;
+    }
+
+    .btn-primary {
+        border-radius: 0 50px 50px 0;
+        padding: 15px 30px;
+    }
+
+    .weather-icon {
+        background-color: rgba(0, 123, 255, 0.1);
+        border-radius: 50%;
+        width: 100px;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    .temperature {
+        color: #0d6efd;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        // Handle form submission
+        $('form').on('submit', function (e) {
+            e.preventDefault(); 
+
+            $.ajax({
+                type: 'POST',
+                url: '{% url "home" %}', // Send to the same URL
+                data: $(this).serialize(), // Convert form data to format server can read
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest' // Tell server this is an AJAX request
+                },
+                success: function (response) { // If server responds successfully
+                    // Show appropriate notification based on response
+                    if (response.status === 'success') {
+                        toastr.success(response.message);
+                    } else if (response.status === 'error') {
+                        toastr.error(response.message);
+                    } else if (response.status === 'info') {
+                        toastr.info(response.message);
+                    }
+                },
+                error: function () { // If something goes wrong
+                    toastr.error('An error occurred while processing your request.');
+                }
+            });
+        });
+
+        // Configure toastr options
+        toastr.options = {
+            // Adds an "x" button to manually close the notification
+            "closeButton": true,
+
+            // When true, shows debug info in console. Normally kep false
+            "debug": false,
+
+            // If false, new notifications appear at bottom. If true, they stack from top
+            "newestOnTop": false,
+
+            // Shows a loading bar that indicates how long until notification disappear
+            "progressBar": true,
+
+            // Where notifications appear on screen. Other options include: 
+            // toast-top-left, toast-bottom-right, toast-bottom-left, toast-center
+            "positionClass": "toast-top-right",
+
+            // If true, won't show multiple identical messages
+            "preventDuplicates": false,
+
+            // How long it takes for notification to show up (in milliseconds)
+            "showDuration": "300",
+
+            // How long it takes for notification to fade away
+            "hideDuration": "1000",
+
+            // How long notification stays visible (5 seconds)
+            "timeOut": "5000",
+
+            // Additional time notification stays if mouse hovers over it
+            "extendedTimeOut": "1000",
+
+            // Animation style for showing notification
+            "showEasing": "swing",
+
+            // Method used to show the notification
+            "hideEasing": "linear",
+
+            // Method used to show the notification
+            "showMethod": "fadeIn",
+
+            // Method used to hide the notification
+            "hideMethod": "fadeOut",
+        };
+    });
+</script>
+{% endblock %}
